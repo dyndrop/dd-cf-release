@@ -16,7 +16,7 @@ case $1 in
     # FIXME: Crap installation of PHP/Apache files.
     # Checking if the default scripts are looking for a packaged apache or not
     apt-get update
-    apt-get install apache2 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt
+    apt-get install -y apache2 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt
 
     mkdir -p $RUN_DIR
     mkdir -p $LOG_DIR
