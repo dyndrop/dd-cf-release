@@ -148,3 +148,15 @@ ruby19:
     name: current
   series: ruby19
   category: ruby
+php:
+  description: "PHP 5"
+  version: "5.3"
+  executable: "php"
+  version_output: 5.3.[2-6]
+  version_flag: '-vn'
+  environment:
+    PATH: /usr/bin:$PATH
+  status:
+    name: current
+  series: php
+  category: php
