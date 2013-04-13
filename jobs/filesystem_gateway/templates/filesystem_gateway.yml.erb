@@ -3,6 +3,8 @@
 service = "filesystem"
 gateway = eval("properties.#{service}_gateway")
 acls = gateway.acls
+plan_enabled = properties.service_plans && properties.service_plans.send(service.to_sym)
+plan_mgmt = plan_enabled && properties.service_plans.send(service.to_sym)
 nats_props_name = properties.nats_props || "nats"
 nats_props = properties.send(nats_props_name)
 nats = "nats://#{nats_props.user}:#{nats_props.password}@#{nats_props.address}:#{nats_props.port}"
