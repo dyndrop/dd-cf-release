@@ -5,6 +5,12 @@ gateway = eval("properties.#{service}_gateway")
 acls = gateway.acls
 plan_enabled = properties.service_plans && properties.service_plans.send(service.to_sym)
 plan_mgmt = plan_enabled && properties.service_plans.send(service.to_sym)
+supported_plans = properties.supported_plans
+if supported_plans
+  plan_mgmt.instance_eval("def fields; @table.keys.select { |v| #{supported_plans}.include? v.to_s }; end;") if plan_mgmt
+else
+  plan_mgmt.instance_eval("def fields; @table.keys; end;") if plan_mgmt
+end
 nats_props_name = properties.nats_props || "nats"
 nats_props = properties.send(nats_props_name)
 nats = "nats://#{nats_props.user}:#{nats_props.password}@#{nats_props.address}:#{nats_props.port}"
