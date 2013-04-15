@@ -13,16 +13,50 @@ case $1 in
   start)
     pid_guard $PIDFILE "DEA"
 
+    mkdir -p $RUN_DIR
+    mkdir -p $LOG_DIR
+
+    echo $$ > $PIDFILE
+
     # FIXME: Crap installation of PHP/Apache files.
     # Checking if the default scripts are looking for a packaged apache or not
     # Ruby necessary for the scripts packaged in the stager
     apt-get update
     apt-get install -y ruby apache2 libapache2-mod-php5 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt
 
-    mkdir -p $RUN_DIR
-    mkdir -p $LOG_DIR
+    # Another part of crap code while we wait for dea_next to be ready and to 
+    # make proper code for it.
+    # Mount the backends of the filesystem gateway services
+    <% if properties.filesystem_gateway %>
+    modprobe nfs
+    <% properties.filesystem_gateway.backends.each do |backend| %>
+        
+    mkdir -p <%= backend.mount %>
 
-    echo $$ > $PIDFILE
+    if grep -qs <%= backend.mount %> /proc/mounts; then
+      echo "Found NFS mount, unmounting..."
+      umount <%= backend.mount %>
+      if [ $? -ne 0 ]; then
+        echo "Failed to unmount NFS, exiting..."
+        exit 1
+      fi
+    fi
+
+    echo "Mounting NFS..."
+    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= backend.host %>:<%= backend.export %> <%= backend.mount %>
+    if [ $? != 0 ]; then
+      echo "Cannot mount NFS, exiting..."
+      exit 1
+    fi
+
+    chpst -u vcap:vcap touch <%= backend.mount %>/.nfs_test
+
+    if [ $? != 0 ]; then
+      echo "Failed to start: cannot write to NFS"
+      exit 1
+    fi
+    <% end %>
+    <% end %>
 
     # ephemeral port range
     echo "1024 65535" > /proc/sys/net/ipv4/ip_local_port_range
