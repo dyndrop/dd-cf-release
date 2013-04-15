@@ -2,10 +2,6 @@
 name: standalone
 
 runtimes:
-  - java:
-      default: false
-  - java7:
-      default: false
   - ruby18:
       default: false
   - ruby19:
