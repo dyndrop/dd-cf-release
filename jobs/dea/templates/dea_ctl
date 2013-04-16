@@ -24,6 +24,12 @@ case $1 in
     apt-get update
     apt-get install -y ruby apache2 libapache2-mod-php5 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt
 
+    # Some other crap code, while waiting for the new DEA..
+    # Install dependencies for the PHP package scripts that handle the 
+    # filesystem integration
+    apt-get install rubygems ruby1.8-dev
+    gem install json
+
     # Another part of crap code while we wait for dea_next to be ready and to 
     # make proper code for it.
     # Mount the backends of the filesystem gateway services
