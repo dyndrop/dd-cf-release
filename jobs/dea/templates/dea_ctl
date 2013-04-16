@@ -22,7 +22,8 @@ case $1 in
     # Checking if the default scripts are looking for a packaged apache or not
     # Ruby necessary for the scripts packaged in the stager
     apt-get update
-    apt-get install -y ruby apache2 libapache2-mod-php5 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt
+    apt-get install -y ruby apache2 libapache2-mod-php5 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt php-apc
+    a2enmod rewrite
 
     # Some other crap code, while waiting for the new DEA..
     # Install dependencies for the PHP package scripts that handle the 
