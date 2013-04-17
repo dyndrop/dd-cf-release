@@ -47,7 +47,7 @@ http {
   <% end %>
 
   server {
-    listen       80;
+    listen       <%= properties.router.port || 80 %>;
     server_name  "<%= properties.domain %>";
     server_name_in_redirect off;
 

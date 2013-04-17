@@ -1,0 +1,10 @@
+---
+name: varnish
+templates:
+  varnish.yml.erb: config/varnish.yml
+  varnish_ctl: bin/varnish_ctl
+  varnish.vcl.erb: config/varnish.vcl
+packages:
+- common
+# TODO: Make a proper varnish package once I get the blostore live
+# - varnish
