@@ -26,6 +26,9 @@ case $1 in
       (cd /tmp && curl -O http://repo.varnish-cache.org/ubuntu/pool/varnish-3.0/v/varnish/varnish_3.0.3-1~lucid_amd64.deb)
       dpkg -i /tmp/libvarnishapi1_3.0.3-1~lucid_amd64.deb
       dpkg -i /tmp/varnish_3.0.3-1~lucid_amd64.deb
+
+      sed -i 's/START=yes/START=no/' /etc/default/varnish
+      service varnish stop
     fi
     
 
@@ -60,9 +63,9 @@ case $1 in
     #      >>$LOG_DIR/varnish.stdout.log \
     #      2>>$LOG_DIR/varnish.stderr.log
 
-    exec /usr/sbin/varnishd -P /var/run/varnishd.pid -a :80 \
+    exec /usr/sbin/varnishd -F -a :80 \
         -T localhost:6082 -f /var/vcap/jobs/varnish/config/varnish.vcl \
-        -S /etc/varnish/secret -s malloc,1G \
+        -S /var/vcap/jobs/varnish/config/secret -s malloc,<%= properties.varnish.memory %>M \
         >>$LOG_DIR/varnish.stdout.log \
         2>>$LOG_DIR/varnish.stderr.log
 
