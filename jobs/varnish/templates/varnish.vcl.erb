@@ -1,3 +1,4 @@
+# This backend goes to the router
 backend default {
   .host = "127.0.0.1";
   .port = "<%= properties.router.port || 80 %>";
@@ -6,9 +7,110 @@ backend default {
   .between_bytes_timeout = 600s;
 }
 
+# This backend is always in sick state (needed for grace mode trick)
+backend fail {
+  .host = "127.0.0.1";
+  .port = "65234";
+  .probe = { .url = "/"; .interval = 1s; .timeout = 1s; .window = 1; .threshold = 1; }
+}
+
+
 sub vcl_recv {
   # We do not cache the calls to the cloudfoundry services
   if (req.http.host ~ "api.<%= properties.domain %>" || req.http.host ~ "uaa.<%= properties.domain %>") {
     return (pass);
   }
+
+  <% if properties.varnish.cookies %>
+  <% if properties.varnish.cookies.forward == false %>
+  # Remove all cookies
+  if (req.http.Cookie) {
+    set req.http.Cookie = ";" + req.http.Cookie;
+    set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+    <% if properties.varnish.cookies.forward_exceptions %>
+    <% properties.varnish.cookies.forward_exceptions.each do |cookie| %>
+    # Cookie removal exception: <%= cookie %>
+    set req.http.Cookie = regsuball(req.http.Cookie, ";(<%= cookie %>)=", "; \1=");
+    <% end %>
+    <% end %>
+    set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
+    set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
+
+    if (req.http.Cookie == "") {
+      remove req.http.Cookie;
+    }
+  }
+  <% end %>
+  <% end %>
+
+
+  //Normalize encodings, prevent multiple cache entries per encoding
+  if (req.http.Accept-Encoding) {
+     if (req.url ~ "\.(jpg|png|gif|gz|zip)$") {
+        // No point in compressing these
+        remove req.http.Accept-Encoding;
+     } elsif (req.http.Accept-Encoding ~ "gzip") {
+        set req.http.Accept-Encoding = "gzip";
+     } elsif (req.http.Accept-Encoding ~ "deflate") {
+        set req.http.Accept-Encoding = "deflate";
+     } else {
+        // unkown algorithm
+        remove req.http.Accept-Encoding;
+     }
+  }
+
+  //We enable the use of stale object up to 24h if the need arise (broken backend)
+  set req.grace = 24h;
+
+  //We enter here if we have previously got an error from the backend (see code below)
+  if (req.http.X-Varnish-Error == "1") {
+    //Set an always failing backend, to force grace mode
+    set req.backend = fail;
+    unset req.http.X-Varnish-Error;
+  }
+}
+
+sub vcl_fetch {
+  //Keep this 24h for grace purpose
+  set beresp.grace = 24h;
+
+  //If we got an error while asking the document
+  if (beresp.status >= 500) {
+    //Do not ask the backend for 10s (temporary blacklist)
+    set beresp.saintmode = 10s;
+    //Call the error handler, vcl_error, to restart and go in grace/saint mode.
+    error beresp.status;
+  }
+}
+
+sub vcl_error {
+
+  // If we are called for an actual error (code 500/503, because we can use 
+  // the command "error 200" to quickly quit with 200),
+  // put a special flag and restart we will then force to go into grace 
+  // and saintmode mode.
+  if ((obj.status >= 500) && req.http.X-Varnish-Error != "1" && req.restarts == 0) {
+    set req.http.X-Varnish-Error = "1";
+    return (restart);
+  }
+}
+
+sub vcl_deliver {
+  // Indicate if we hit or miss
+  if (obj.hits > 0) {
+      set resp.http.X-Varnish-Cache = "HIT";
+      set resp.http.X-Varnish-Hits = obj.hits;
+  } else {
+      set resp.http.X-Varnish-Cache = "MISS";
+  }
+
+  // Prevent browsers to cache pages locally
+  if (req.url !~ "\.(png|gif|jpg|jpeg|css|js|swf)(\?[a-zA-Z0-9=\.]?)?$") {
+    set resp.http.X-Varnish-Cache-Control = resp.http.Cache-Control;
+    set resp.http.Cache-Control = "no-cache, must-revalidate";
+  }
+
+  remove resp.http.X-Powered-By;
+  remove resp.http.X-Generator;
+  remove resp.http.Server;
 }
