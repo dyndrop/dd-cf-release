@@ -104,8 +104,12 @@ sub vcl_deliver {
       set resp.http.X-Varnish-Cache = "MISS";
   }
 
-  // Prevent browsers to cache pages locally
-  if (req.url !~ "\.(png|gif|jpg|jpeg|css|js|swf)(\?[a-zA-Z0-9=\.]?)?$") {
+  // By default, the Cache-Control: public, max-age=XXX is forwared to the browser
+  // which will use it to cache content browser-side (and not request the server)
+  // The problem is that we want the browser to revalidate for non-static pages, as
+  // we may have a different behavior if e.g. we get logged in.
+  // (Setting the Expires header in the past is not sufficient for at least Firefox)
+  if (req.url !~ "\.(png|gif|jpg|jpeg|css|js|swf)(\?[a-zA-Z0-9=\.]+)?$") {
     set resp.http.X-Varnish-Cache-Control = resp.http.Cache-Control;
     set resp.http.Cache-Control = "no-cache, must-revalidate";
   }
