@@ -18,18 +18,26 @@ cleanup:
   greedy_mark: <%= properties.service_snapshot_manager && properties.service_snapshot_manager.cleanup_greedy_mark || "false" %>
   cloud_controller_uri: <%= properties.cc.srv_api_uri %>
   services:
+    <% if properties.mongodb_gateway %>
     mongodb:
       version: "1.8"
       token: <%= properties.mongodb_gateway.token %>
+    <% end %>
+    <% if properties.redis_gateway %>
     redis:
       version: "2.2"
       token: <%= properties.redis_gateway.token %>
+    <% end %>
+    <% if properties.mysql_gateway %>
     mysql:
       version: "5.1"
       token: <%= properties.mysql_gateway.token %>
+    <% end %>
+    <% if properties.postgresql_gateway %>
     postgresql:
       version: "9.0"
       token: <%= properties.postgresql_gateway.token %>
+    <% end %>
 root: <%= properties.service_lifecycle && properties.service_lifecycle.mount_point || "/var/vcap/services_snapshot" %>
 wakeup_interval: <%= properties.service_snapshot_manager && properties.service_snapshot_manager.cleanup_interval_secs || 43200 %>
 enable: <%= properties.service_snapshot_manager && properties.service_lifecycle && properties.service_lifecycle.nfs_server && properties.service_snapshot_manager.enable || "false" %>
