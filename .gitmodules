@@ -18,7 +18,7 @@
 	url = git@github.com:cloudfoundry/dea_ng.git
 [submodule "src/health_manager_next"]
 	path = src/health_manager_next
-	url = git://github.com/cloudfoundry/health_manager.git
+	url = git://github.com/dyndrop/health_manager.git
 [submodule "src/router"]
 	path = src/router
 	url = git@github.com:cloudfoundry/router.git
