@@ -46,3 +46,6 @@
 [submodule "src/microgit_server"]
 	path = src/microgit_server
 	url = git@github.com:dyndrop/microgit-server.git
+[submodule "src/dyndrop_server"]
+	path = src/dyndrop_server
+	url = git@github.com:dyndrop/dyndrop-server.git
