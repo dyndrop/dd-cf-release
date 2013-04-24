@@ -43,3 +43,6 @@
 [submodule "src/gorouter"]
 	path = src/gorouter
 	url = git@github.com:cloudfoundry/gorouter.git
+[submodule "src/microgit_server"]
+	path = src/microgit_server
+	url = git@github.com:dyndrop/microgit-server.git
