@@ -2,11 +2,14 @@
 name: dyndrop_git
 templates:
   dyndrop_git_ctl.erb: bin/dyndrop_git_ctl
-  check_credentials.rb.erb: scripts/check_credentials
-  get_pub_keys.rb.erb: scripts/get_pub_keys
-  get_repo_location.rb.erb: scripts/get_repo_location
-  Gemfile: scripts/Gemfile
+  check_credentials.rb.erb: bin/check_credentials
+  get_pub_keys.rb.erb: bin/get_pub_keys
+  get_repo_location.rb.erb: bin/get_repo_location
+  Gemfile: bin/Gemfile
+  git_server_key.erb: config/git_server_key
+  git_server_key.pub.erb: config/git_server_key.pub
 
 packages:
 - common
+- git
 - microgit_server

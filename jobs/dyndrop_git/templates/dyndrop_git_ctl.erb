@@ -54,8 +54,8 @@ case $1 in
       exit 1
     fi
 
-    # Preparing the bundle of the scripts used by the microgit server
-    (cd /var/vcap/jobs/dyndrop_git/scripts/ && /var/vcap/packages/ruby/bin/bundle --path vendor/bundle)
+    # Preparing the bundle of the bin used by the microgit server
+    (cd /var/vcap/jobs/dyndrop_git/bin/ && /var/vcap/packages/ruby/bin/bundle --path vendor/bundle)
     
 
     # ephemeral port range
@@ -85,7 +85,7 @@ case $1 in
 
 
     exec /var/vcap/packages/microgit_server/microgit-server.py \
-        -i ../path/to/ssh/key \
+        -i /var/vcap/jobs/dyndrop_git/config/git_server_key \
         -p 2222 \
         -c /var/vcap/jobs/dyndrop_git/bin/check_credentials \
         -k /var/vcap/jobs/dyndrop_git/bin/get_pub_keys \
