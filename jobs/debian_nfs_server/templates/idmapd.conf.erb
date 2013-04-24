@@ -2,7 +2,7 @@
 
 Verbosity = 0
 Pipefs-Directory = /var/lib/nfs/rpc_pipefs
-Domain = <%= properties.nfs_server.idmapd_domain ? properties.nfs_server.idmapd_domain : "localdomain" %>
+Domain = <%= properties.debian_nfs_server.idmapd_domain ? properties.debian_nfs_server.idmapd_domain : "localdomain" %>
 
 [Mapping]
 

@@ -7,8 +7,13 @@ case $1 in
   start)
     dpkg --unpack -E /var/vcap/packages/debian_nfs_server/nfs-kernel-server_1%3a1.2.0-4ubuntu4.1_amd64.deb
     rm -rf /etc/init.d/nfs-kernel-server
-    mkdir -p /var/vcap/store/shared
-    chown vcap:vcap /var/vcap/store/shared
+
+<% if properties.debian_nfs_server.exports %>
+<% properties.debian_nfs_server.exports.each do |export| %>
+    mkdir -p <%= export.path %>
+    chown vcap:vcap <%= export.path %>
+<% end %>
+<% end %>
 
     cp -f /var/vcap/jobs/debian_nfs_server/config/exports /etc/exports
 
