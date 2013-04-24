@@ -1,0 +1,110 @@
+#!/bin/bash
+
+export PATH=/var/vcap/packages/ruby/bin:$PATH
+RUN_DIR=/var/vcap/sys/run/dyndrop_git
+LOG_DIR=/var/vcap/sys/log/dyndrop_git
+PIDFILE=$RUN_DIR/dyndrop_git.pid
+JOB_DIR=/var/vcap/jobs/dyndrop_git
+
+NFS_SHARE=/var/vcap/dyndrop_git/repos
+
+source /var/vcap/packages/common/utils.sh
+
+case $1 in
+
+  start)
+    pid_guard $PIDFILE "VARNISH"
+
+    mkdir -p $RUN_DIR
+    mkdir -p $LOG_DIR
+
+    echo $$ > $PIDFILE
+
+    # FIXME: Crap installation of Python environment. Needs to do that in a
+    # package later.
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' python-twisted-conch | grep "install ok installed")
+    if [ "$PKG_OK" == "" ]; then
+      apt-get update
+      apt-get -y install python-pycryptopp python-pyasn1 python-twisted python-twisted-conch
+    fi
+
+    modprobe nfs
+    mkdir -p $NFS_SHARE
+
+    if grep -qs $NFS_SHARE /proc/mounts; then
+      echo "Found NFS mount, unmounting..."
+      umount $NFS_SHARE
+      if [ $? -ne 0 ]; then
+        echo "Failed to unmount NFS, exiting..."
+        exit 1
+      fi
+    fi
+
+    echo "Mounting NFS..."
+    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_git.nfs_server.address %>:<%= properties.dyndrop_git.nfs_server.export_dir %> $NFS_SHARE
+    if [ $? != 0 ]; then
+      echo "Cannot mount NFS, exiting..."
+      exit 1
+    fi
+
+    chpst -u vcap:vcap touch $NFS_SHARE/.nfs_test
+
+    if [ $? != 0 ]; then
+      echo "Failed to start: cannot write to NFS"
+      exit 1
+    fi
+    
+
+    # ephemeral port range
+    echo "1024 65535" > /proc/sys/net/ipv4/ip_local_port_range
+
+    # TCP_FIN_TIMEOUT
+    # This setting determines the time that must elapse before TCP/IP can release a closed connection and reuse
+    # its resources. During this TIME_WAIT state, reopening the connection to the client costs less than establishing
+    # a new connection. By reducing the value of this entry, TCP/IP can release closed connections faster, making more
+    # resources available for new connections. Addjust this in the presense of many connections sitting in the
+    # TIME_WAIT state:
+
+    echo 5 > /proc/sys/net/ipv4/tcp_fin_timeout
+
+    # TCP_TW_RECYCLE
+    # It enables fast recycling of TIME_WAIT sockets. The default value is 0 (disabled). The sysctl documentation
+    # incorrectly states the default as enabled. It can be changed to 1 (enabled) in many cases. Known to cause some
+    # issues with hoststated (load balancing and fail over) if enabled, should be used with caution.
+
+    echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
+
+    # TCP_TW_REUSE
+    # This allows reusing sockets in TIME_WAIT state for new connections when it is safe from protocol viewpoint.
+    # Default value is 0 (disabled). It is generally a safer alternative to tcp_tw_recycle
+
+    echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
+
+
+    # exec /var/vcap/packages/dyndrop_git/bin/dyndrop_git \
+    #      -c /var/vcap/jobs/dyndrop_git/config/dyndrop_git.yml \
+    #      >>$LOG_DIR/dyndrop_git.stdout.log \
+    #      2>>$LOG_DIR/dyndrop_git.stderr.log
+
+    exec /var/vcap/packages/microgit_server/microgit-server.py \
+        -i ../path/to/ssh/key \
+        -p 2222 \
+        -c /var/vcap/jobs/dyndrop_git/bin/check_credentials \
+        -k /var/vcap/jobs/dyndrop_git/bin/get_pub_keys \
+        -r /var/vcap/jobs/dyndrop_git/bin/get_repo_location \
+        >>$LOG_DIR/dyndrop_git.stdout.log \
+        2>>$LOG_DIR/dyndrop_git.stderr.log
+
+    ;;
+
+  stop)
+    kill_and_wait $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: dyndrop_git_ctl {start|stop}"
+
+    ;;
+
+esac

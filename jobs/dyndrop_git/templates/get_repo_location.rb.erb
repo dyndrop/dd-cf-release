@@ -1,0 +1,29 @@
+#! /var/vcap/packages/ruby/bin/ruby
+#
+# get_repo_location.rb [repo_name]
+# For a given requested repo (e.g. "/nand/myproject.git" if using 
+# "git clone git@xxx.com/nand/myproject.git"),
+# return the location in the local filesystem where this repo is stored, e.g. 
+# "/nfs/git_repos/nand/myproject/"
+#
+
+Kernel.abort "Missing repo_name" if ARGV[0].nil?
+
+result = nil
+
+# We enforce that the path was /xxx/yyy.git
+path = ARGV[0].dup
+if path[0] == '/' then
+  path = path[1..-1]
+  if path[-4..-1] == ".git" then
+    path = path[0..-5]
+    if path.count("/") == 1 then
+      result = "/var/vcap/dyndrop_git/repos"
+      result += "/" if result[-1] != "/"
+      result += "repos/"
+      result += path
+    end
+  end
+end
+
+print result

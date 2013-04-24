@@ -1,0 +1,5 @@
+check process dyndrop_git
+  with pidfile /var/vcap/sys/run/dyndrop_git/dyndrop_git.pid
+  start program "/var/vcap/jobs/dyndrop_git/bin/dyndrop_git_ctl start"
+  stop program "/var/vcap/jobs/dyndrop_git/bin/dyndrop_git_ctl stop"
+  group vcap

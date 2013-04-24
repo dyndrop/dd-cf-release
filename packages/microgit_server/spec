@@ -1,0 +1,7 @@
+---
+name: microgit_server
+
+dependencies:
+- ruby
+files:
+- microgit_server/**/*
