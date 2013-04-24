@@ -1,6 +1,6 @@
 <% if properties.debian_nfs_server.exports %>
 <% properties.debian_nfs_server.exports.each do |export| %>
 <% no_root_squash = (export.no_root_squash) ? ',no_root_squash' : '' %>
-<%= export.path %>        <%= properties.debian_nfs_server.network %>(rw,fsid=0,no_subtree_check,sync<%= no_root_squash %>)
+<%= export.path %>        <%= properties.debian_nfs_server.network %>(rw,no_subtree_check,sync<%= no_root_squash %>)
 <% end %>
 <% end %>
