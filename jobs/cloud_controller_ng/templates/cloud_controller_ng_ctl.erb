@@ -53,7 +53,7 @@ case $1 in
     echo $$ > $PIDFILE
     chown vcap:vcap $PIDFILE
 
-    <% if properties.nfs_server %>
+    <% if properties.cc.nfs_server %>
     modprobe nfs
     mkdir -p $NFS_SHARE
 
@@ -73,10 +73,10 @@ case $1 in
     fi
 
     echo "Mounting NFS..."
-    <% if properties.nfs_server.nfsv4 %>
-    mount -o timeo=10,intr,lookupcache=positive -t nfs4 <%= properties.nfs_server.address %>:<%= properties.nfs_server.share || "/" %> $NFS_SHARE
+    <% if properties.cc.nfs_server.nfsv4 %>
+    mount -o timeo=10,intr,lookupcache=positive -t nfs4 <%= properties.cc.nfs_server.address %>:<%= properties.cc.nfs_server.share || "/" %> $NFS_SHARE
     <% else %>
-    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.nfs_server.address %>:<%= properties.nfs_server.share || "/var/vcap/store/shared" %> $NFS_SHARE
+    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.cc.nfs_server.address %>:<%= properties.cc.nfs_server.share || "/var/vcap/store/shared" %> $NFS_SHARE
     <% end %>
     if [ $? != 0 ]; then
       echo "Cannot mount NFS, exiting..."
