@@ -4,4 +4,4 @@ name: microgit_server
 dependencies:
 - ruby
 files:
-- microgit_server/**/*
+- microgit_server/microgit_server/**/*
