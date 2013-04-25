@@ -4,16 +4,16 @@ set -e
 cp -a * ${BOSH_INSTALL_TARGET}
 
 (
-  cd ${BOSH_INSTALL_TARGET}/dyndrop_server
+  cd ${BOSH_INSTALL_TARGET}
+
+  # Move everything at root level
+  # Move all including hidden files, try to move . && .., so "|| true"
+  mv dyndrop_server/{*,.*} . || true
+  rm -Rf dyndrop_server
 
   bundle_cmd=/var/vcap/packages/ruby/bin/bundle
   mysqlclient_dir=/var/vcap/packages/mysqlclient
 
   $bundle_cmd config build.mysql2 --with-mysql-dir=$mysqlclient_dir --with-mysql-include=$mysqlclient_dir/include/mysql
   $bundle_cmd install --local --deployment --without development test
-
-  cd ${BOSH_INSTALL_TARGET}
-  # Move all including hidden files, try to move . && .., so || true
-  mv dyndrop_server/{*,.*} . || true
-  rm -Rf dyndrop_server
 )
