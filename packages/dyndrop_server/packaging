@@ -5,5 +5,10 @@ cp -a * ${BOSH_INSTALL_TARGET}
 
 (
   cd ${BOSH_INSTALL_TARGET}/dyndrop_server
-  /var/vcap/packages/ruby/bin/bundle install --local --deployment
+
+  bundle_cmd=/var/vcap/packages/ruby/bin/bundle
+  mysqlclient_dir=/var/vcap/packages/mysqlclient
+
+  $bundle_cmd config build.mysql2 --with-mysql-dir=$mysqlclient_dir --with-mysql-include=$mysqlclient_dir/include/mysql
+  $bundle_cmd install --local --deployment --without development test
 )
