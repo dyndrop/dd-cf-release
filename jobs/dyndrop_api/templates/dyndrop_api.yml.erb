@@ -1,0 +1,15 @@
+production:
+  base_url: <%= properties.dyndrop_api.uri %>
+  shared_fs:
+    mount: /tmp
+    bare_repos_path: /var/vcap/dyndrop_api/git_repositories
+    repo_instances_path: /var/vcap/dyndrop_api/repo_instances
+    hooks_path: /hooks
+  servers:
+    cf:
+      url: <%= properties.cc.srv_api_uri %>
+      admin_email: <%= properties.dyndrop_api.cf_admin.email %>
+      admin_password: <%= properties.dyndrop_api.cf_admin.password %>
+    git:
+      dns: <%= properties.dyndrop_git.dns %>
+  git_webhooks_token: <%= properties.dyndrop_api.git_webhooks_token %>

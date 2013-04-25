@@ -1,0 +1,8 @@
+---
+name: dyndrop_api
+templates:
+  dyndrop_api_ctl.erb: bin/dyndrop_api_ctl
+  dyndrop_api.yml.erb: config/dyndrop_api.yml
+packages:
+  - common
+  - dyndrop_server

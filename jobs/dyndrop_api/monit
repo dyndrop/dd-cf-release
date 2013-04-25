@@ -1,0 +1,5 @@
+check process dyndrop_api
+  with pidfile /var/vcap/sys/run/dyndrop_api/dyndrop_api.pid
+  start program "/var/vcap/jobs/dyndrop_api/bin/dyndrop_api_ctl start"
+  stop program "/var/vcap/jobs/dyndrop_api/bin/dyndrop_api_ctl stop"
+  group vcap

@@ -1,0 +1,124 @@
+#!/bin/bash
+
+export DD_JOB_DIR=/var/vcap/jobs/dyndrop_api
+export RAILS_ENV=production
+export PATH=/var/vcap/packages/ruby/bin:$PATH
+
+DD_PACKAGE_DIR=/var/vcap/packages/dyndrop_api
+NFS_SHARE_GIT_REPOS=/var/vcap/dyndrop_api/git_repositories
+NFS_SHARE_REPO_INSTANCES=/var/vcap/dyndrop_api/repo_instances
+
+RUN_DIR=/var/vcap/sys/run/dyndrop_api
+LOG_DIR=/var/vcap/sys/log/dyndrop_api
+PIDFILE=$RUN_DIR/dyndrop_api.pid
+
+export DYNDROP_API_CONFIG=$DD_JOB_DIR/config/dyndrop_api.yml
+export BUNDLE_GEMFILE=$DD_PACKAGE_DIR/dyndrop_api/Gemfile
+export HOME=/home/vcap # rake needs it to be set to run tasks
+export TMPDIR=/var/vcap/data/dyndrop_api/tmp
+
+export CONFIG_DIR=$DD_JOB_DIR/config
+
+source /var/vcap/packages/common/utils.sh
+
+case $1 in
+
+  start)
+    pid_guard $PIDFILE "Dyndrop API"
+
+    mkdir -p $RUN_DIR
+    mkdir -p $LOG_DIR
+    mkdir -p $TMPDIR
+
+    chown vcap:vcap $RUN_DIR
+    chown vcap:vcap $LOG_DIR
+    chown vcap:vcap $TMPDIR
+
+    echo $$ > $PIDFILE
+    chown vcap:vcap $PIDFILE
+
+
+    modprobe nfs
+    mkdir -p $NFS_SHARE_GIT_REPOS
+
+    if grep -qs $NFS_SHARE_GIT_REPOS /proc/mounts; then
+      echo "Found NFS mount, unmounting..."
+      umount $NFS_SHARE_GIT_REPOS
+      if [ $? -ne 0 ]; then
+        echo "Failed to unmount NFS, exiting..."
+        exit 1
+      fi
+    fi
+
+    echo "Mounting NFS..."
+    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_git_repos_dir %> $NFS_SHARE_GIT_REPOS
+    if [ $? != 0 ]; then
+      echo "Cannot mount NFS, exiting..."
+      exit 1
+    fi
+
+    chpst -u vcap:vcap touch $NFS_SHARE_GIT_REPOS/.nfs_test
+
+    if [ $? != 0 ]; then
+      echo "Failed to start: cannot write to NFS"
+      exit 1
+    fi
+
+
+    mkdir -p $NFS_SHARE_REPO_INSTANCES
+
+    if grep -qs $NFS_SHARE_REPO_INSTANCES /proc/mounts; then
+      echo "Found NFS mount, unmounting..."
+      umount $NFS_SHARE_REPO_INSTANCES
+      if [ $? -ne 0 ]; then
+        echo "Failed to unmount NFS, exiting..."
+        exit 1
+      fi
+    fi
+
+    echo "Mounting NFS..."
+    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_repo_instances_dir %> $NFS_SHARE_REPO_INSTANCES
+    if [ $? != 0 ]; then
+      echo "Cannot mount NFS, exiting..."
+      exit 1
+    fi
+
+    chpst -u vcap:vcap touch $NFS_SHARE_REPO_INSTANCES/.nfs_test
+
+    if [ $? != 0 ]; then
+      echo "Failed to start: cannot write to NFS"
+      exit 1
+    fi
+
+
+
+    # Only done on the first CC launch
+    # <% if spec.index.to_i == 0 %>
+    #   cd $DD_PACKAGE_DIR/dyndrop_api
+    #   export CC_NOSTART=1
+    #   chpst -u vcap:vcap bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
+    #   if [ $? != 0 ]; then
+    #     echo "Migrations failed"
+    #     # TODO: what to do with other CCs if this failed?
+    #     exit 1
+    #   fi
+    #   unset CC_NOSTART
+    # <% end %>
+
+
+    exec chpst -u vcap:vcap $DD_PACKAGE_DIR/bin/dyndrop_api \
+         >>$LOG_DIR/dyndrop_api.stdout.log \
+         2>>$LOG_DIR/dyndrop_api.stderr.log
+
+    ;;
+
+  stop)
+    kill_and_wait $PIDFILE
+
+    ;;
+  *)
+    echo "Usage: dyndrop_api_ctl {start|stop}"
+
+    ;;
+
+esac

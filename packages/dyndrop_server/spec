@@ -1,0 +1,8 @@
+---
+name: dyndrop_server
+
+dependencies:
+- ruby
+files:
+- dyndrop_server/**/*
+- pkg_utils/*
