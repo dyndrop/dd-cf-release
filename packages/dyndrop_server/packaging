@@ -11,4 +11,9 @@ cp -a * ${BOSH_INSTALL_TARGET}
 
   $bundle_cmd config build.mysql2 --with-mysql-dir=$mysqlclient_dir --with-mysql-include=$mysqlclient_dir/include/mysql
   $bundle_cmd install --local --deployment --without development test
+
+  cd ${BOSH_INSTALL_TARGET}
+  # Move all including hidden files, try to move . && .., so || true
+  mv dyndrop_server/{*,.*} . || true
+  rm -Rf dyndrop_server
 )

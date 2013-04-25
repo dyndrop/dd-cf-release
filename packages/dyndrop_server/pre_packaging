@@ -2,4 +2,7 @@
 set -e
 
 cd ${BUILD_DIR}
+
 pkg_utils/vendor.sh dyndrop_server
+
+rm -rf pkg_utils
