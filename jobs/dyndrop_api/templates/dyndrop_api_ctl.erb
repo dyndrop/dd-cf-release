@@ -106,7 +106,7 @@ case $1 in
     # <% end %>
 
 
-    exec chpst -u vcap:vcap $DD_PACKAGE_DIR/bin/dyndrop_api \
+    exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop_server \
          >>$LOG_DIR/dyndrop_api.stdout.log \
          2>>$LOG_DIR/dyndrop_api.stderr.log
 
