@@ -107,8 +107,10 @@ case $1 in
 
 
     exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
-         >>$LOG_DIR/dyndrop_api.stdout.log \
-         2>>$LOG_DIR/dyndrop_api.stderr.log
+        -c /var/vcap/jobs/dyndrop_api/config/dyndrop_api.yml
+        -d /var/vcap/jobs/dyndrop_api/config/dyndrop_api_database.yml
+        >>$LOG_DIR/dyndrop_api.stdout.log \
+        2>>$LOG_DIR/dyndrop_api.stderr.log
 
     ;;
 

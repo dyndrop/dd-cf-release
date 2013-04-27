@@ -1,10 +1,8 @@
 production:
   base_url: <%= properties.dyndrop_api.uri %>
   shared_fs:
-    mount: /tmp
     bare_repos_path: /var/vcap/dyndrop_api/git_repositories
     repo_instances_path: /var/vcap/dyndrop_api/repo_instances
-    hooks_path: /hooks
   servers:
     cf:
       url: <%= properties.cc.srv_api_uri %>
