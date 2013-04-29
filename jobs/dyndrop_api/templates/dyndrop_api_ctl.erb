@@ -95,18 +95,22 @@ case $1 in
     fi
 
     cd $DD_PACKAGE_DIR
-    bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
+    chpst -u vcap:vcap bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
     if [ $? != 0 ]; then
       echo "Migrations failed"
       # TODO: what to do with other CCs if this failed?
       exit 1
     fi
 
+    # Run dyndrop api as vcap user with unprivileged port, redirect to port 80 with iptables
+    if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" == "" ]; then
+      iptables -t nat -A PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
+    fi
 
-    exec /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
+    exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
         -c /var/vcap/jobs/dyndrop_api/config/dyndrop_api.yml \
         -d /var/vcap/jobs/dyndrop_api/config/dyndrop_api_database.yml \
-        -p <%= properties.dyndrop_api.port %> \
+        -p 9999 \
         >>$LOG_DIR/dyndrop_api.stdout.log \
         2>>$LOG_DIR/dyndrop_api.stderr.log
 
@@ -114,6 +118,8 @@ case $1 in
 
   stop)
     kill_and_wait $PIDFILE
+
+    iptables -t nat -D PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
 
     ;;
   *)
