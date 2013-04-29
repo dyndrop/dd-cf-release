@@ -95,7 +95,7 @@ case $1 in
     fi
 
     cd $DD_PACKAGE_DIR
-    chpst -u vcap:vcap bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
+    bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
     if [ $? != 0 ]; then
       echo "Migrations failed"
       # TODO: what to do with other CCs if this failed?
@@ -103,7 +103,7 @@ case $1 in
     fi
 
 
-    exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
+    exec /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
         -c /var/vcap/jobs/dyndrop_api/config/dyndrop_api.yml \
         -d /var/vcap/jobs/dyndrop_api/config/dyndrop_api_database.yml \
         -p <%= properties.dyndrop_api.port %> \
