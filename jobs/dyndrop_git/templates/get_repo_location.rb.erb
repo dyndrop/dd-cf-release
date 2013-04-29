@@ -18,9 +18,8 @@ if path[0] == '/' then
   if path[-4..-1] == ".git" then
     path = path[0..-5]
     if path.count("/") == 1 then
-      result = "/var/vcap/dyndrop_git/repos"
+      result = "/var/vcap/dyndrop_git/git_repositories"
       result += "/" if result[-1] != "/"
-      result += "repos/"
       result += path
     end
   end
