@@ -12,6 +12,8 @@ RUN_DIR=/var/vcap/sys/run/dyndrop_api
 LOG_DIR=/var/vcap/sys/log/dyndrop_api
 PIDFILE=$RUN_DIR/dyndrop_api.pid
 
+ETH0_IP=$(ifconfig eth0 | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p')
+
 export DYNDROP_API_CONFIG=$DD_JOB_DIR/config/dyndrop_api.yml
 export BUNDLE_GEMFILE=$DD_PACKAGE_DIR/Gemfile
 export HOME=/home/vcap # rake needs it to be set to run tasks
@@ -104,7 +106,11 @@ case $1 in
 
     # Run dyndrop api as vcap user with unprivileged port, redirect to port 80 with iptables
     if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" == "" ]; then
+      # External connections
       iptables -t nat -A PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
+      # Connections from within the machine
+      iptables -t nat -A OUTPUT -p tcp -d $ETH0_IP --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-port 9999
+      iptables -t nat  
     fi
 
     exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
@@ -119,7 +125,10 @@ case $1 in
   stop)
     kill_and_wait $PIDFILE
 
-    iptables -t nat -D PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
+    if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" != "" ]; then
+      iptables -t nat -D OUTPUT -p tcp -d $ETH0_IP --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-port 9999
+      iptables -t nat -D PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
+    end
 
     ;;
   *)
