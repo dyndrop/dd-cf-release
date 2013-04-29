@@ -84,7 +84,7 @@ case $1 in
     echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
 
 
-    exec /var/vcap/packages/microgit_server/microgit-server.py \
+    exec chpst -u vcap:vcap /var/vcap/packages/microgit_server/microgit-server.py \
         -i /var/vcap/jobs/dyndrop_git/config/git_server_key \
         -p 2222 \
         -c /var/vcap/jobs/dyndrop_git/bin/check_credentials \
