@@ -24,6 +24,7 @@ case $1 in
     apt-get update
     apt-get install -y ruby apache2 libapache2-mod-php5 php5-cli php5-mysql php5-curl php5-gd php5-imap php5-memcache php5-mcrypt php-apc
     a2enmod rewrite
+    DEBIAN_FRONTEND=noninteractive apt-get -y install postfix
 
     # Some other crap code, while waiting for the new DEA..
     # Install dependencies for the PHP package scripts that handle the 
