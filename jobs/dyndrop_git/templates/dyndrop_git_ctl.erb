@@ -25,7 +25,9 @@ case $1 in
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' python-twisted-conch | grep "install ok installed")
     if [ "$PKG_OK" == "" ]; then
       apt-get update
-      apt-get -y install python-pycryptopp python-pyasn1 python-twisted python-twisted-conch
+      apt-get -y install python-pycryptopp python-pyasn1
+      apt-get -y install python-dev python-pip
+      easy_install "Twisted==11.1"
     fi
 
     modprobe nfs
