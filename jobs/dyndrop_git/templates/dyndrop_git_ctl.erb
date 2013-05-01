@@ -88,7 +88,7 @@ case $1 in
 
     exec chpst -u vcap:vcap /var/vcap/packages/microgit_server/microgit-server.py \
         -i /var/vcap/jobs/dyndrop_git/config/git_server_key \
-        -p 2222 \
+        -p <%= properties.dyndrop_git.port %> \
         -c /var/vcap/jobs/dyndrop_git/bin/check_credentials \
         -k /var/vcap/jobs/dyndrop_git/bin/get_pub_keys \
         -r /var/vcap/jobs/dyndrop_git/bin/get_repo_location \

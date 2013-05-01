@@ -10,5 +10,6 @@ production:
       admin_password: <%= properties.dyndrop_api.cf_admin.password %>
     git:
       dns: <%= properties.dyndrop_git.dns %>
+      port: <%= properties.dyndrop_git.port %>
   auth:
     git_webhooks_token: <%= properties.dyndrop_api.git_webhooks_token %>
