@@ -2,6 +2,7 @@
 name: microgit_server
 
 dependencies:
+- git
 - ruby
 files:
 - microgit_server/**/*

@@ -2,7 +2,7 @@
 
 export DD_JOB_DIR=/var/vcap/jobs/dyndrop_api
 export RAILS_ENV=production
-export PATH=/var/vcap/packages/ruby/bin:$PATH
+export PATH=/var/vcap/packages/ruby/bin:/var/vcap/packages/git/bin:$PATH
 
 DD_PACKAGE_DIR=/var/vcap/packages/dyndrop_server
 NFS_SHARE_GIT_REPOS=/var/vcap/dyndrop_api/git_repositories
@@ -110,7 +110,6 @@ case $1 in
       iptables -t nat -A PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
       # Connections from within the machine
       iptables -t nat -A OUTPUT -p tcp -d $ETH0_IP --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-port 9999
-      iptables -t nat  
     fi
 
     exec chpst -u vcap:vcap /var/vcap/packages/dyndrop_server/bin/dyndrop-server \
@@ -128,7 +127,7 @@ case $1 in
     if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" != "" ]; then
       iptables -t nat -D OUTPUT -p tcp -d $ETH0_IP --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-port 9999
       iptables -t nat -D PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
-    end
+    fi
 
     ;;
   *)

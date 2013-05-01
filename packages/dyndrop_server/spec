@@ -3,6 +3,7 @@ name: dyndrop_server
 
 dependencies:
 - mysqlclient
+- git
 - ruby
 files:
 - dyndrop_server/**/*
