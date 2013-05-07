@@ -18,7 +18,7 @@ backend fail {
 sub vcl_recv {
   # We do not cache the calls to the cloudfoundry services
   if (req.http.host ~ "api.<%= properties.domain %>" || req.http.host ~ "uaa.<%= properties.domain %>") {
-    return (pass);
+    return (pipe);
   }
 
   <% if properties.varnish.cookies %>
