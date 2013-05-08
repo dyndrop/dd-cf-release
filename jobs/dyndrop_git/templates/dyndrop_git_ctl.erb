@@ -31,9 +31,9 @@ case $1 in
       easy_install "pycrypto==2.6"
     fi
 
-    modprobe nfs
-    mkdir -p $NFS_SHARE
 
+
+    modprobe nfs
     if grep -qs $NFS_SHARE /proc/mounts; then
       echo "Found NFS mount, unmounting..."
       umount $NFS_SHARE
@@ -42,19 +42,33 @@ case $1 in
         exit 1
       fi
     fi
-
-    echo "Mounting NFS..."
-    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_git.nfs_server.address %>:<%= properties.dyndrop_git.nfs_server.export_dir %> $NFS_SHARE
-    if [ $? != 0 ]; then
-      echo "Cannot mount NFS, exiting..."
-      exit 1
+    if [ -L $NFS_SHARE ]; then
+      unlink $NFS_SHARE
+    fi
+    if [ -d $NFS_SHARE ]; then
+      rmdir $NFS_SHARE
     fi
 
-    chpst -u vcap:vcap touch $NFS_SHARE/.nfs_test
+    if [ -L /var/vcap/jobs/debian_nfs_server -a -d <%= properties.dyndrop_git.nfs_server.export_dir %> ]; then
+      ln -s <%= properties.dyndrop_git.nfs_server.export_dir %> $NFS_SHARE
 
-    if [ $? != 0 ]; then
-      echo "Failed to start: cannot write to NFS"
-      exit 1
+    else 
+    
+      mkdir -p $NFS_SHARE
+
+      echo "Mounting NFS..."
+      mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_git.nfs_server.address %>:<%= properties.dyndrop_git.nfs_server.export_dir %> $NFS_SHARE
+      if [ $? != 0 ]; then
+        echo "Cannot mount NFS, exiting..."
+        exit 1
+      fi
+
+      chpst -u vcap:vcap touch $NFS_SHARE/.nfs_test
+
+      if [ $? != 0 ]; then
+        echo "Failed to start: cannot write to NFS"
+        exit 1
+      fi
     fi
 
     # Preparing the bundle of the bin used by the microgit server
