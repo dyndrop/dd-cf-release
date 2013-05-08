@@ -44,9 +44,9 @@ case $1 in
     chown vcap:vcap $PIDFILE
 
 
-    modprobe nfs
-    mkdir -p $NFS_SHARE_GIT_REPOS
 
+
+    modprobe nfs
     if grep -qs $NFS_SHARE_GIT_REPOS /proc/mounts; then
       echo "Found NFS mount, unmounting..."
       umount $NFS_SHARE_GIT_REPOS
@@ -55,23 +55,43 @@ case $1 in
         exit 1
       fi
     fi
-
-    echo "Mounting NFS..."
-    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_git_repos_dir %> $NFS_SHARE_GIT_REPOS
-    if [ $? != 0 ]; then
-      echo "Cannot mount NFS, exiting..."
-      exit 1
+    if [ -L $NFS_SHARE_GIT_REPOS ]; then
+      unlink $NFS_SHARE_GIT_REPOS
+    fi
+    if [ -d $NFS_SHARE_GIT_REPOS ]; then
+      rmdir $NFS_SHARE_GIT_REPOS
     fi
 
-    chpst -u vcap:vcap touch $NFS_SHARE_GIT_REPOS/.nfs_test
+    if [ -L /var/vcap/jobs/debian_nfs_server -a -d <%= properties.dyndrop_api.nfs_server.export_git_repos_dir %> ]; then
+      ln -s <%= properties.dyndrop_api.nfs_server.export_git_repos_dir %> $NFS_SHARE_GIT_REPOS
+    else 
+      mkdir -p $NFS_SHARE_GIT_REPOS
 
-    if [ $? != 0 ]; then
-      echo "Failed to start: cannot write to NFS"
-      exit 1
+      if grep -qs $NFS_SHARE_GIT_REPOS /proc/mounts; then
+        echo "Found NFS mount, unmounting..."
+        umount $NFS_SHARE_GIT_REPOS
+        if [ $? -ne 0 ]; then
+          echo "Failed to unmount NFS, exiting..."
+          exit 1
+        fi
+      fi
+
+      echo "Mounting NFS..."
+      mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_git_repos_dir %> $NFS_SHARE_GIT_REPOS
+      if [ $? != 0 ]; then
+        echo "Cannot mount NFS, exiting..."
+        exit 1
+      fi
+
+      chpst -u vcap:vcap touch $NFS_SHARE_GIT_REPOS/.nfs_test
+
+      if [ $? != 0 ]; then
+        echo "Failed to start: cannot write to NFS"
+        exit 1
+      fi
     fi
 
 
-    mkdir -p $NFS_SHARE_REPO_INSTANCES
 
     if grep -qs $NFS_SHARE_REPO_INSTANCES /proc/mounts; then
       echo "Found NFS mount, unmounting..."
@@ -81,20 +101,43 @@ case $1 in
         exit 1
       fi
     fi
-
-    echo "Mounting NFS..."
-    mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_repo_instances_dir %> $NFS_SHARE_REPO_INSTANCES
-    if [ $? != 0 ]; then
-      echo "Cannot mount NFS, exiting..."
-      exit 1
+    if [ -L $NFS_SHARE_REPO_INSTANCES ]; then
+      unlink $NFS_SHARE_REPO_INSTANCES
+    fi
+    if [ -d $NFS_SHARE_REPO_INSTANCES ]; then
+      rmdir $NFS_SHARE_REPO_INSTANCES
     fi
 
-    chpst -u vcap:vcap touch $NFS_SHARE_REPO_INSTANCES/.nfs_test
+    if [ -L /var/vcap/jobs/debian_nfs_server -a -d <%= properties.dyndrop_api.nfs_server.export_repo_instances_dir %> ]; then
+      ln -s <%= properties.dyndrop_api.nfs_server.export_repo_instances_dir %> $NFS_SHARE_REPO_INSTANCES
 
-    if [ $? != 0 ]; then
-      echo "Failed to start: cannot write to NFS"
-      exit 1
+    else 
+      mkdir -p $NFS_SHARE_REPO_INSTANCES
+
+      if grep -qs $NFS_SHARE_REPO_INSTANCES /proc/mounts; then
+        echo "Found NFS mount, unmounting..."
+        umount $NFS_SHARE_REPO_INSTANCES
+        if [ $? -ne 0 ]; then
+          echo "Failed to unmount NFS, exiting..."
+          exit 1
+        fi
+      fi
+
+      echo "Mounting NFS..."
+      mount -o timeo=10,intr,lookupcache=positive -t nfs <%= properties.dyndrop_api.nfs_server.address %>:<%= properties.dyndrop_api.nfs_server.export_repo_instances_dir %> $NFS_SHARE_REPO_INSTANCES
+      if [ $? != 0 ]; then
+        echo "Cannot mount NFS, exiting..."
+        exit 1
+      fi
+
+      chpst -u vcap:vcap touch $NFS_SHARE_REPO_INSTANCES/.nfs_test
+
+      if [ $? != 0 ]; then
+        echo "Failed to start: cannot write to NFS"
+        exit 1
+      fi
     fi
+
 
     cd $DD_PACKAGE_DIR
     chpst -u vcap:vcap bundle exec rake db:migrate >>$LOG_DIR/db_migrate.stdout.log 2>>$LOG_DIR/db_migrate.stderr.log
