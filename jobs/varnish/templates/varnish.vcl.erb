@@ -81,6 +81,15 @@ sub vcl_fetch {
     //Call the error handler, vcl_error, to restart and go in grace/saint mode.
     error beresp.status;
   }
+
+  //Cache 404s
+  //Do not cache the 404s that comes from the router itself
+  if (beresp.status == 404) {
+    set beresp.ttl = 60s;
+    if(beresp.http.X-Generator !~ "^.+$") {
+      set beresp.ttl = 0s;
+    }
+  }
 }
 
 sub vcl_error {
