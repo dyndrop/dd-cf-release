@@ -74,6 +74,11 @@ sub vcl_fetch {
   //Keep this 24h for grace purpose
   set beresp.grace = 24h;
 
+  //If the backend do not ask for cache, do no cache by default.
+  if (beresp.http.Cache-Control !~ "max-age=[1-9][0-9]*") {
+    set beresp.ttl = 0s;
+  }
+
   //If we got an error while asking the document
   if (beresp.status >= 500) {
     //Do not ask the backend for 10s (temporary blacklist)
