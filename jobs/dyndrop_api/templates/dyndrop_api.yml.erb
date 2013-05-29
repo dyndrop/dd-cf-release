@@ -1,5 +1,13 @@
+<%
+plan_enabled = properties.dyndrop_api.plans && properties.dyndrop_api.plans
+plan_mgmt = plan_enabled && properties.dyndrop_api.plans
+plan_mgmt.instance_eval("def fields; @table.keys; end;") if plan_mgmt
+base_url_suffix = "";
+base_url_suffix = ":" + properties.dyndrop_api.port.to_s if properties.dyndrop_api.port != "80"
+%>
+
 production:
-  base_url: <%= properties.dyndrop_api.uri %>
+  base_url: <%= properties.dyndrop_api.uri %><%= base_url_suffix %>
   shared_fs:
     bare_repos_path: /var/vcap/dyndrop_api/git_repositories
     repo_instances_path: /var/vcap/dyndrop_api/repo_instances
@@ -8,8 +16,19 @@ production:
       url: <%= properties.cc.srv_api_uri %>
       admin_email: <%= properties.dyndrop_api.cf_admin.email %>
       admin_password: <%= properties.dyndrop_api.cf_admin.password %>
-    git:
-      dns: <%= properties.dyndrop_git.dns %>
-      port: <%= properties.dyndrop_git.port %>
-  auth:
-    git_webhooks_token: <%= properties.dyndrop_api.git_webhooks_token %>
+  github:
+    oauth:
+      client_id: <%= properties.dyndrop_api.github.oauth.client_id %>
+      client_secret: <%= properties.dyndrop_api.github.oauth.client_secret %>
+  paymill:
+    api_key: <%= properties.dyndrop_api.paymill.api_key %>
+  plans:
+  <% if plan_enabled %>
+    <% for plan in plan_mgmt.fields.each %>
+    <% plan_price = plan_mgmt.send(plan.to_sym).price %>
+    <% plan_ram = plan_mgmt.send(plan.to_sym).ram %>
+    <%= "#{plan}:" %>
+      price: <%= "#{plan_price}" %>
+      ram: <%= "#{plan_ram}" %>
+    <% end %>
+  <% end %>

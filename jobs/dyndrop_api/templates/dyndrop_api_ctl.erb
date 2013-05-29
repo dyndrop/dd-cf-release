@@ -148,7 +148,7 @@ case $1 in
     fi
 
     # Run dyndrop api as vcap user with unprivileged port, redirect to port 80 with iptables
-    if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" == "" ]; then
+    if [ "$(iptables -t nat -L | grep 'redir ports 9999')" == "" ]; then
       # External connections
       iptables -t nat -A PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
       # Connections from within the machine
@@ -167,7 +167,7 @@ case $1 in
   stop)
     kill_and_wait $PIDFILE
 
-    if [ "$(iptables -t nat -L | grep 'tcp dpt:www redir ports 9999')" != "" ]; then
+    if [ "$(iptables -t nat -L | grep 'redir ports 9999')" != "" ]; then
       iptables -t nat -D OUTPUT -p tcp -d $ETH0_IP --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-port 9999
       iptables -t nat -D PREROUTING -p tcp --dport <%= properties.dyndrop_api.port %> -j REDIRECT --to-ports 9999
     fi
