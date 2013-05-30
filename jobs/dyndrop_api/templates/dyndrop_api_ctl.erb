@@ -43,7 +43,8 @@ case $1 in
     echo $$ > $PIDFILE
     chown vcap:vcap $PIDFILE
 
-
+  
+    mkdir -p /var/vcap/dyndrop_api
 
 
     modprobe nfs
