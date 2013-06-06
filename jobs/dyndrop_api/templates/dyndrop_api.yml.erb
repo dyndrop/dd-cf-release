@@ -27,8 +27,12 @@ production:
     <% for plan in plan_mgmt.fields.each %>
     <% plan_price = plan_mgmt.send(plan.to_sym).price %>
     <% plan_ram = plan_mgmt.send(plan.to_sym).ram %>
+    <% plan_max_per_user = plan_mgmt.send(plan.to_sym).max_per_user %>
     <%= "#{plan}:" %>
       price: <%= "#{plan_price}" %>
       ram: <%= "#{plan_ram}" %>
+      max_per_user: <%= "#{plan_max_per_user}" %>
     <% end %>
   <% end %>
+  apps:
+    max_hosted: <%= properties.dyndrop_api.apps.max_hosted %>
