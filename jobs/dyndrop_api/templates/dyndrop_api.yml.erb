@@ -16,6 +16,7 @@ production:
       url: <%= properties.cc.srv_api_uri %>
       admin_email: <%= properties.dyndrop_api.cf_admin.email %>
       admin_password: <%= properties.dyndrop_api.cf_admin.password %>
+      base_domain: <%= properties.domain %>
   github:
     oauth:
       client_id: <%= properties.dyndrop_api.github.oauth.client_id %>
