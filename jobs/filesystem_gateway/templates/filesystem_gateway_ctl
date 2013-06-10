@@ -21,6 +21,7 @@ case $1 in
 
     <% for backend in properties.filesystem_gateway.backends %>
     mkdir -p <%= backend.mount %>
+    chmod 711 <%= backend.mount %>
     mount <%= backend.host %>:<%= backend.export %> <%= backend.mount %>
     <% end %>
 
