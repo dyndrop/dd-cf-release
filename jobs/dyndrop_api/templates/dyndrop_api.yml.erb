@@ -21,6 +21,10 @@ production:
     oauth:
       client_id: <%= properties.dyndrop_api.github.oauth.client_id %>
       client_secret: <%= properties.dyndrop_api.github.oauth.client_secret %>
+    users:
+      template_installer:
+        ssh_priv_key: |
+<%= properties.dyndrop_api.github.users.template_installer.ssh_priv_key.split("\n").map{ |l| "          " + l }.join("\n") %>
   paymill:
     api_key: <%= properties.dyndrop_api.paymill.api_key %>
   plans:
