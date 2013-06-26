@@ -25,6 +25,9 @@ export RACK_ENV=production
 export DYNDROP_SERVER_DATABASE_CONFIG="/var/vcap/jobs/dyndrop_api/config/dyndrop_api_database.yml"
 export DYNDROP_SERVER_CONFIG="/var/vcap/jobs/dyndrop_api/config/dyndrop_api.yml"
 
+# We absolutely need this for Dyndrop to work properly
+export LANG="en_US.UTF-8"
+
 source /var/vcap/packages/common/utils.sh
 
 case $1 in
